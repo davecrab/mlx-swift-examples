@@ -231,6 +231,12 @@ public class LLMRegistry: AbstractModelRegistry, @unchecked Sendable {
         defaultPrompt: "Why is the sky blue?"
     )
 
+    static public let gemma3_1b_4bit = ModelConfiguration(
+        id: "mlx-community/gemma-3-1b-it-4bit",
+        overrideTokenizer: "PreTrainedTokenizer",
+        defaultPrompt: "What are the key innovations in Gemma 3 architecture?"
+    )
+
     private static func all() -> [ModelConfiguration] {
         [
             codeLlama13b4bit,
@@ -263,6 +269,7 @@ public class LLMRegistry: AbstractModelRegistry, @unchecked Sendable {
             glm4_9b_4bit,
             acereason_7b_4bit,
             bitnet_b1_58_2b_4t_4bit,
+            gemma3_1b_4bit,
         ]
     }
 

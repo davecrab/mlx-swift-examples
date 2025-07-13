@@ -101,8 +101,8 @@ actor ModelFactory {
 
     enum LoadState {
         case idle
-        case loading(Task<ModelContainer<TextToImageGenerator>, Error>)
-        case loaded(ModelContainer<TextToImageGenerator>)
+        case loading(Task<StableDiffusionModelContainer<TextToImageGenerator>, Error>)
+        case loaded(StableDiffusionModelContainer<TextToImageGenerator>)
     }
 
     enum SDError: LocalizedError {
@@ -151,7 +151,7 @@ actor ModelFactory {
     }
 
     public func load(reportProgress: @escaping @Sendable (Progress) -> Void) async throws
-        -> ModelContainer<TextToImageGenerator>
+        -> StableDiffusionModelContainer<TextToImageGenerator>
     {
         switch loadState {
         case .idle:
@@ -178,7 +178,7 @@ actor ModelFactory {
                     }
                 }
 
-                let container = try ModelContainer<TextToImageGenerator>.createTextToImageGenerator(
+                let container = try StableDiffusionModelContainer<TextToImageGenerator>.createTextToImageGenerator(
                     configuration: configuration, loadConfiguration: loadConfiguration)
 
                 await container.setConserveMemory(conserveMemory)

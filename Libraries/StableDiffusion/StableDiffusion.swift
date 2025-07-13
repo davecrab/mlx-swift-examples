@@ -99,7 +99,7 @@ public protocol ImageToImageGenerator: ImageGenerator {
         -> DenoiseIterator
 }
 
-enum ModelContainerError: LocalizedError {
+enum StableDiffusionModelContainerError: LocalizedError {
     /// Unable to create the particular type of model, e.g. it doesn't support image to image
     case unableToCreate(String, String)
     /// When operating in conserveMemory mode, it tried to use a model that had been discarded
@@ -122,7 +122,7 @@ enum ModelContainerError: LocalizedError {
 }
 
 /// Container for models that guarantees single threaded access.
-public actor ModelContainer<M> {
+public actor StableDiffusionModelContainer<M> {
 
     enum State {
         case discarded
@@ -138,25 +138,25 @@ public actor ModelContainer<M> {
         self.state = .loaded(model)
     }
 
-    /// create a ``ModelContainer`` that supports ``TextToImageGenerator``
+    /// create a ``StableDiffusionModelContainer`` that supports ``TextToImageGenerator``
     static public func createTextToImageGenerator(
         configuration: StableDiffusionConfiguration, loadConfiguration: LoadConfiguration = .init()
-    ) throws -> ModelContainer<TextToImageGenerator> {
+    ) throws -> StableDiffusionModelContainer<TextToImageGenerator> {
         if let model = try configuration.textToImageGenerator(configuration: loadConfiguration) {
             return .init(model: model)
         } else {
-            throw ModelContainerError.unableToCreate(configuration.id, "TextToImageGenerator")
+            throw StableDiffusionModelContainerError.unableToCreate(configuration.id, "TextToImageGenerator")
         }
     }
 
-    /// create a ``ModelContainer`` that supports ``ImageToImageGenerator``
+    /// create a ``StableDiffusionModelContainer`` that supports ``ImageToImageGenerator``
     static public func createImageToImageGenerator(
         configuration: StableDiffusionConfiguration, loadConfiguration: LoadConfiguration = .init()
-    ) throws -> ModelContainer<ImageToImageGenerator> {
+    ) throws -> StableDiffusionModelContainer<ImageToImageGenerator> {
         if let model = try configuration.imageToImageGenerator(configuration: loadConfiguration) {
             return .init(model: model)
         } else {
-            throw ModelContainerError.unableToCreate(configuration.id, "ImageToImageGenerator")
+            throw StableDiffusionModelContainerError.unableToCreate(configuration.id, "ImageToImageGenerator")
         }
     }
 
@@ -169,7 +169,7 @@ public actor ModelContainer<M> {
     public func perform<R>(_ action: @Sendable (M) throws -> R) throws -> R {
         switch state {
         case .discarded:
-            throw ModelContainerError.modelDiscarded
+            throw StableDiffusionModelContainerError.modelDiscarded
         case .loaded(let m):
             try action(m)
         }
@@ -190,7 +190,7 @@ public actor ModelContainer<M> {
         let r1 =
             switch state {
             case .discarded:
-                throw ModelContainerError.modelDiscarded
+                throw StableDiffusionModelContainerError.modelDiscarded
             case .loaded(let m):
                 try first(m)
             }
