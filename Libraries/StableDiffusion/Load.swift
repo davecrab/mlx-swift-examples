@@ -137,12 +137,16 @@ public struct StableDiffusionConfiguration: Sendable {
 
     public enum Preset: String, Codable, CaseIterable, Sendable {
         case base
+        case sd15 = "sd-1.5"
         case sdxlTurbo = "sdxl-turbo"
+        case dreamshaperXL = "dreamshaper-xl"
 
         public var configuration: StableDiffusionConfiguration {
             switch self {
             case .base: presetStableDiffusion21Base
+            case .sd15: presetStableDiffusion15
             case .sdxlTurbo: presetSDXLTurbo
+            case .dreamshaperXL: presetDreamShaperXL
             }
         }
     }
@@ -172,6 +176,63 @@ public struct StableDiffusionConfiguration: Sendable {
             if loadConfiguration.quantize {
                 quantize(model: sd.textEncoder, filter: { k, m in m is Linear })
                 quantize(model: sd.textEncoder2, filter: { k, m in m is Linear })
+                quantize(model: sd.unet, groupSize: 32, bits: 8)
+            }
+            return sd
+        }
+    )
+
+    /// See https://huggingface.co/Lykon/dreamshaper-xl-v2-turbo for the model details and license
+    public static let presetDreamShaperXL = StableDiffusionConfiguration(
+        id: "Lykon/dreamshaper-xl-v2-turbo",
+        files: [
+            .unetConfig: "unet/config.json",
+            .unetWeights: "unet/diffusion_pytorch_model.safetensors",
+            .textEncoderConfig: "text_encoder/config.json",
+            .textEncoderWeights: "text_encoder/model.safetensors",
+            .textEncoderConfig2: "text_encoder_2/config.json",
+            .textEncoderWeights2: "text_encoder_2/model.safetensors",
+            .vaeConfig: "vae/config.json",
+            .vaeWeights: "vae/diffusion_pytorch_model.safetensors",
+            .diffusionConfig: "scheduler/scheduler_config.json",
+            .tokenizerVocabulary: "tokenizer/vocab.json",
+            .tokenizerMerges: "tokenizer/merges.txt",
+            .tokenizerVocabulary2: "tokenizer_2/vocab.json",
+            .tokenizerMerges2: "tokenizer_2/merges.txt",
+        ],
+        defaultParameters: { EvaluateParameters(cfgWeight: 2.0, steps: 6) },
+        factory: { hub, sdConfiguration, loadConfiguration in
+            let sd = try StableDiffusionXL(
+                hub: hub, configuration: sdConfiguration, dType: loadConfiguration.dType)
+            if loadConfiguration.quantize {
+                quantize(model: sd.textEncoder, filter: { k, m in m is Linear })
+                quantize(model: sd.textEncoder2, filter: { k, m in m is Linear })
+                quantize(model: sd.unet, groupSize: 32, bits: 8)
+            }
+            return sd
+        }
+    )
+
+    /// See https://huggingface.co/runwayml/stable-diffusion-v1-5 for the model details and license
+    public static let presetStableDiffusion15 = StableDiffusionConfiguration(
+        id: "runwayml/stable-diffusion-v1-5",
+        files: [
+            .unetConfig: "unet/config.json",
+            .unetWeights: "unet/diffusion_pytorch_model.safetensors",
+            .textEncoderConfig: "text_encoder/config.json",
+            .textEncoderWeights: "text_encoder/model.safetensors",
+            .vaeConfig: "vae/config.json",
+            .vaeWeights: "vae/diffusion_pytorch_model.safetensors",
+            .diffusionConfig: "scheduler/scheduler_config.json",
+            .tokenizerVocabulary: "tokenizer/vocab.json",
+            .tokenizerMerges: "tokenizer/merges.txt",
+        ],
+        defaultParameters: { EvaluateParameters(cfgWeight: 7.5, steps: 50) },
+        factory: { hub, sdConfiguration, loadConfiguration in
+            let sd = try StableDiffusionBase(
+                hub: hub, configuration: sdConfiguration, dType: loadConfiguration.dType)
+            if loadConfiguration.quantize {
+                quantize(model: sd.textEncoder, filter: { k, m in m is Linear })
                 quantize(model: sd.unet, groupSize: 32, bits: 8)
             }
             return sd
