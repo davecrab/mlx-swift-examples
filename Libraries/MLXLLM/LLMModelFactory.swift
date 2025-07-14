@@ -234,7 +234,8 @@ public class LLMRegistry: AbstractModelRegistry, @unchecked Sendable {
     static public let gemma3_1b_4bit = ModelConfiguration(
         id: "mlx-community/gemma-3-1b-it-4bit",
         overrideTokenizer: "PreTrainedTokenizer",
-        defaultPrompt: "What are the key innovations in Gemma 3 architecture?"
+        defaultPrompt: "What are the key innovations in Gemma 3 architecture?",
+        extraEOSTokens: ["<end_of_turn>"]
     )
 
     private static func all() -> [ModelConfiguration] {
